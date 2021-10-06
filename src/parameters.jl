@@ -13,7 +13,7 @@ using LinearAlgebra
     μ_vector::Vector{Float64} #service rates
     P::Matrix{Float64} #routing matrix
     Q::Matrix{Float64} #overflow matrix
-    p_e::Vector{Float64} #external arrival distribution
+    p_e::AbstractWeights #external arrival distribution
     K::Vector{Int} #-1 means infinity 
 end
 
@@ -27,7 +27,7 @@ scenario1 = NetworkParameters(  L=3,
                                     0 0 1.0;
                                     0 0 0],
                                 Q = zeros(3,3),
-                                p_e = [1.0, 0, 0],
+                                p_e = AnalyticWeights([1.0, 0, 0]),
                                 K = fill(5,3))
 @show scenario1
 
@@ -41,7 +41,7 @@ scenario2 = NetworkParameters(  L=3,
                                     0 0 1.0;
                                     0.5 0 0],
                                 Q = zeros(3,3),
-                                p_e = [1.0, 0, 0],
+                                p_e = AnalyticWeights([1.0, 0, 0]),
                                 K = fill(5,3))
 @show scenario2
 
@@ -57,7 +57,7 @@ scenario3 = NetworkParameters(  L=3,
                                 Q = [0 0.5 0;
                                      0 0 0.5;
                                      0.5 0 0],
-                                p_e = [1.0, 0, 0],
+                                p_e = AnalyticWeights([1.0, 0, 0]),
                                 K = fill(5,3))
 @show scenario3
 
@@ -77,7 +77,7 @@ scenario4 = NetworkParameters(  L=5,
                                      1 0 0 0 0;
                                      1 0 0 0 0;
                                      1 0 0 0 0],                             
-                                p_e = [0.2, 0.2, 0, 0, 0.6],
+                                p_e = AnalyticWeights([0.2, 0.2, 0, 0, 0.6]),
                                 K = [-1, -1, 10, 10, 10])
 @show scenario4
 
@@ -89,6 +89,6 @@ scenario5 = NetworkParameters(  L=20,
                                 μ_vector = ones(20),
                                 P = zeros(20,20),
                                 Q = diagm(3=>ones(19), -19=>ones(3)),                             
-                                p_e = vcat(1,zeros(19)),
+                                p_e = AnalyticWeights(vcat(1,zeros(19))),
                                 K = fill(5,20))
 @show scenario5

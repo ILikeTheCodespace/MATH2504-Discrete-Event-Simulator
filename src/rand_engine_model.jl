@@ -21,8 +21,11 @@ isless(te1::TimedEvent, te2::TimedEvent) = te1.time < te2.time
 Object which represents state of overall system, e.g. total jobs orbiting, 
 total jobs within system.
 """
-mutable struct QueueState <: State
-    number_in_system::Int # If ≥ 1 then server is busy, If = 0 server is idle.
+
+mutable struct NetworkState <: State
+    number_in_system::Int # Number of jobs orbiting stations
+    queues::Array{Int8} #Int8 type used here since the capacity of each station for the parameters provided maxes out at 10, could cause scalability issues
+    NetworkState() = new(0)
 end
 
 # Generic events that we can always use
@@ -96,7 +99,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent
 end;
 
 """
-Overload simulate with the Project 2 Specific Simulate function, differs by taking in the premade NetworkParameters object as an arg.
+Overload Simulate with the Project 2 specific Simulate function, differs by taking in the premade NetworkParameters object as an arg.
 """
 
 function simulate(init_state::State, init_timed_event::TimedEvent, scenario::NetworkParameters
@@ -115,13 +118,17 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
         push!(priority_queue, TimedEvent(LogStateEvent(), log_time))
     end
 
-    # initilize the state
+    # Initialize the network state
     state = deepcopy(init_state)
     time = 0.0
+
+    # initialize the queue states of the stations
+    state.queues = zeros(Int8, scenario.L)
 
     # Callback at simulation start
     callback(time, state)
     
+    # The main discrete event simulation loop 
     while true
         # Get the next event
         timed_event = pop!(priority_queue)
@@ -130,7 +137,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
         time = timed_event.time
 
         # Act on the event
-        new_timed_events = process_event(time, state, timed_event.event) 
+        new_timed_events = process_event(time, state, timed_event.event, scenario)
 
         # If the event was an end of simulation then stop
         if timed_event.event isa EndSimEvent

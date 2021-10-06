@@ -1,3 +1,5 @@
+using Distributions, StatsBase
+
 """
     new_timed_events = process_event(time, state, event)
 
@@ -26,28 +28,29 @@ end
 Handles jobs entering into the system
 """
 
-########################################################################
-### TODO: MAKE THESE RAND FUNCTIONS SAMPLE FROM A GAMMA DISTRIBUTION ###  
-########################################################################
-
 # Process an arrival event
-function process_event(time::Float64, state::State, ::ArrivalEvent)
+function process_event(time::Float64, state::State, scenario::NetworkParameters, ::ArrivalEvent)
     # Increase number in system
     state.number_in_system += 1
     new_timed_events = TimedEvent[]
 
     # Prepare next arrival
-    push!(new_timed_events,TimedEvent(ArrivalEvent(),time + rand(Exponential(1/λ))))
+    """
+    FIXME: The arg. for the Gamma function calls are placeholders since I currently do not understand what theyre asking for an input
+    """
+    push!(new_timed_events,TimedEvent(ArrivalEvent(),time + rand(Gamma(1/λ))))
 
-    # If this is the only job on the server
+    # Using probability vector, find the first station that the new arrival heads to
+    first_station = sample(scenario.p_e)
 
-    ############################################################################################ 
-    ### FIXME: THIS SHORT CIRCUIT EVALUATION PROBABLY DOESNT WORK FOR THE PROJECT 2 SCENARIO ###  
-    ############################################################################################
-    state.number_in_system == 1 && push!(new_timed_events,TimedEvent(EndOfServiceEvent(), time + 1/μ))
+    """ - NOTE FROM WILL - I think the logic of this section needs to be completely reworked. What we want is to check if the station is under capacity, if this is true, then the job enters the queue, if the queue is empty as the job enters it, then the job will be serviced and a new TimedEvent will be added to the heap. If the station is at capacity though, then the job will overflow and the corresponding set of calculations will be undertaken to see where the job eventually ends up.
+
+    # If this is the only job on the station
+
+    # FIXME: The arg. for the Gamma function calls are placeholders since I currently do not understand what theyre asking for an input
+
+    # state.number_in_system == 1 && push!(new_timed_events,TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/μ))))
+    """
+
     return new_timed_events
 end
-
-    #####################################################################################################################################
-    ### TODO: WHEN I RETURN TO THIS FUNNY HAHA LINE OF CODE, CHANGE IT SO THAT IT USES FILTERS THE NEW ARRIVAL INTO THE FIRST STATION ###  
-    #####################################################################################################################################

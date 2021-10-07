@@ -2,8 +2,8 @@
 ### BOILERPLATE FROM LECTURE NOTES ### 
 ######################################
 
-using DataStructures
-import Base: isless
+# using DataStructures
+# import Base: isless
 
 abstract type Event end
 abstract type State end
@@ -23,10 +23,14 @@ total jobs within system.
 """
 
 mutable struct NetworkState <: State
-    number_in_system::Int # Number of jobs orbiting stations
+    number_in_system::Int # Total number of jobs within the network
     queues::Array{Int8} #Int8 type used here since the capacity of each station for the parameters provided maxes out at 10, could cause scalability issues
     NetworkState() = new(0)
+    NetworkState(x::Int, y::Array{Int8}) = new(x,y)
 end
+
+struct ArrivalEvent <: Event end
+struct EndOfServiceEvent <: Event end
 
 # Generic events that we can always use
 """
@@ -122,8 +126,8 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
     state = deepcopy(init_state)
     time = 0.0
 
-    # initialize the queue states of the stations
-    state.queues = zeros(Int8, scenario.L)
+    # # initialize the queue states of the stations
+    # state.queues = zeros(Int8, scenario.L) This is probably a bad approach to take when taking a "generic" system so Im commenting it out for the time being
 
     # Callback at simulation start
     callback(time, state)

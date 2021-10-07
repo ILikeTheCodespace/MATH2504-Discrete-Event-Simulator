@@ -12,6 +12,7 @@ abstract type State end
 struct TimedEvent
     event::Event
     time::Float64
+    location_ID::Int
 end
 
 # Comparison of two timed events - this will allow us to use them in a heap/priority-queue
@@ -31,6 +32,8 @@ end
 
 struct ArrivalEvent <: Event end
 struct EndOfServiceEvent <: Event end
+struct OrbitEvent <: Event end # FIXME: MIGHT NOT NEED THIS
+struct OverflowEvent <: Event end 
 
 # Generic events that we can always use
 """
@@ -64,9 +67,9 @@ function simulate(init_state::State, init_timed_event::TimedEvent
 
     # Put the standard events in the queue
     push!(priority_queue, init_timed_event)
-    push!(priority_queue, TimedEvent(EndSimEvent(), max_time))
+    push!(priority_queue, TimedEvent(EndSimEvent(), max_time, 0))
     for log_time in log_times
-        push!(priority_queue, TimedEvent(LogStateEvent(), log_time))
+        push!(priority_queue, TimedEvent(LogStateEvent(), log_time, 0))
     end
 
     # initilize the state
@@ -117,9 +120,9 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
 
     # Put the standard events in the queue
     push!(priority_queue, init_timed_event)
-    push!(priority_queue, TimedEvent(EndSimEvent(), max_time))
+    push!(priority_queue, TimedEvent(EndSimEvent(), max_time, 0))
     for log_time in log_times
-        push!(priority_queue, TimedEvent(LogStateEvent(), log_time))
+        push!(priority_queue, TimedEvent(LogStateEvent(), log_time, 0))
     end
 
     # Initialize the network state
@@ -141,7 +144,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
         time = timed_event.time
 
         # Act on the event
-        new_timed_events = process_event(time, state, timed_event.event, scenario)
+        new_timed_events = process_event(time, state, timed_event.location_ID, timed_event.event, scenario)
 
         # If the event was an end of simulation then stop
         if timed_event.event isa EndSimEvent

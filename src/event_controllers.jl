@@ -4,7 +4,7 @@ rand_bit(p::Real = 0.5) = rand() ≤ p ? 1 : 0   #\le + [TAB]
 
 function queue_join_with_empty_check(time::Float64, current_station::Int, state::State, new_timed_events::Array{TimedEvent}, scenario::NetworkParameters)::Bool
     state.queues[current_station] += 1
-    state.queues[current_station] == 1 && push!(new_timed_events, TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.μ_vector[current_station]))))
+    state.queues[current_station] == 1 && push!(new_timed_events, TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.μ_vector[current_station])), current_station))
     return true
 end
 
@@ -37,7 +37,7 @@ Handles jobs entering into the system
 """
 
 # Process an arrival event
-function process_event(time::Float64, state::State, ::ArrivalEvent, scenario::NetworkParameters)
+function process_event(time::Float64, state::State, location_ID, ::ArrivalEvent, scenario::NetworkParameters)
     # Increase number in system
     state.number_in_system += 1
     new_timed_events = TimedEvent[]
@@ -46,53 +46,68 @@ function process_event(time::Float64, state::State, ::ArrivalEvent, scenario::Ne
     """
     FIXME: The arg. for the Gamma function calls are placeholders since I currently do not understand what theyre asking for an input
     """
-    push!(new_timed_events,TimedEvent(ArrivalEvent(),time + rand(Gamma(1/scenario.λ))))
+    push!(new_timed_events,TimedEvent(ArrivalEvent(),time + rand(Gamma(1/scenario.λ)),0))
 
     # Using probability vector, find the first station that the new arrival heads to
-    current_station = sample(scenario.p_e)
-
-    """
-    The following if block checks if the station is under capacity, if this is true, then the job enters the queue, if the queue is empty as the job enters it, then the job will be serviced and a new TimedEvent will eventually be added to the heap. If the station is at capacity though, then the job will overflow and the corresponding set of calculations will be undertaken to see where the job eventually ends up. TODO: Consider cleaning up later since this code is pretty gross.
-    """
-    while true 
-        state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario) && break
-        if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
-            state.number_in_system -= 1 
-            break
-        end
-        current_station = sample(AnalyticWeights(scenario.Q[current_station,:]))
-    end
+    current_station = sample(scenario.p_e) 
     
-    # Disgusting scrap code, delete later if the while loop above works
-    # if state.queues[first_station] < state.k[first_station]
-    #     queue_join_with_empty_check(first_station, new_timed_events)
-    # else
-    #     current_station = first_station
-    #     while true
-    #         if rand_bit(1-sum(scenario.Q[current_station,:])) == 1 
-    #             state.number_in_system -= 1
-    #             break
-    #         else
-    #             current_station = sample(AnalyticWeights(scenario.Q[current_station,:]))
-    #             if state.queues[current_station] < state.k[current_station]
-    #                 queue_join_with_empty_check(current_station, new_timed_events)
-    #                 break
-    #             end
-    #         end
-    #     end
-    # end
+    # Job enters initial station, if it is not full, the job either queues or is being actively serviced. TODO: Consider cleaning up later since this code is pretty gross.
+    state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario) && return new_timed_events
+
+    """
+    FIXME: The arg. for the Gamma function calls are placeholders since I currently do not understand what theyre asking for an input
+    """
+    # TODO: FIXME: This if block is repeated multiple times throughout this file, this is poor practice and should be replaced with a function call ASAP. 
+
+    # If the job doesnt leave the system (Determined by the overflow matrix Q), then a new OverflowEvent is created
+    if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
+        state.number_in_system -= 1
+    else
+        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:]))))
+    end
 
     return new_timed_events
 end
 
 # Process an EndOfServiceEvent event
-function process_event(time::Float64, state::State, ::EndOfServiceEvent, scenario::NetworkParameters)
+function process_event(time::Float64, state::State, location_ID, ::EndOfServiceEvent, scenario::NetworkParameters)
     new_timed_events = TimedEvent[]
+
+    current_station = location_ID
+
+    state.queues[current_station] -= 1
+
+    if rand_bit(1-sum(scenario.P[current_station,:])) == 1
+        state.number_in_system -= 1
+    else
+        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.η)), sample(AnalyticWeights(scenario.P[current_station,:]))))
+    end
+
+    @assert state.queues[location_ID] > -1
+    return state.queues[location_ID] > 0 ? [TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.μ_vector[current_station])), location_ID)] : TimedEvent[]
+end
+
+# Process an Orbit and OverflowEvent event
+function process_event(time::Float64, state::State, location_ID, ::OverflowEvent, scenario::NetworkParameters)
+    new_timed_events = TimedEvent[]
+
+    current_station = location_ID
+    # Job enters initial station, if it is not full, the job either queues or is being actively serviced. TODO: Consider cleaning up later since this code is pretty gross.
+    # TODO: Check if the guard clause here is needed, or if theres a smarter way to go about this
+    state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario) && return new_timed_events
+
+    if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
+        state.number_in_system -= 1
+    else
+        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:]))))
+    end
+
     return new_timed_events
 end
 
-# Process an EndOfServiceEvent event
-function process_event(time::Float64, state::State, es_event::EndSimEvent, scenario::NetworkParameters)
+# Process an EndSimEvent event
+function process_event(time::Float64, state::State, location_ID, es_event::EndSimEvent, scenario::NetworkParameters)
     println("Ending simulation at time $time.")
     return []
 end
+

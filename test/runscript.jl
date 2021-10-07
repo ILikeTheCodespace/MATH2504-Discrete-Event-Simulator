@@ -1,4 +1,5 @@
 include("../src/dependencies.jl")
+# include("src/dependencies.jl") FIXME: This line is just here to test the plot function call at the end of the file from the Julia REPL.
 """
 Call simulate function below
 """
@@ -25,5 +26,5 @@ scenariotest = NetworkParameters(  L=3,
 
 # simulate(NetworkState(0, zeros(Int8, scenario1.L)), TimedEvent(ArrivalEvent(),0.0), log_times = [5.3,7.5])
 
-simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0), scenariotest ,max_time = 20.0, callback = record_trajectory)
+simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0), scenariotest ,max_time = 20.0, callback = record_trajectory)
 plot(time_traj, queue_traj)

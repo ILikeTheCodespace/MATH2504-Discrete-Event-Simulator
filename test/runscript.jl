@@ -1,5 +1,5 @@
 include("../src/dependencies.jl")
-# include("src/dependencies.jl") FIXME: This line is just here to test the plot function call at the end of the file from the Julia REPL.
+# include("src/dependencies.jl") # FIXME: This line is just here to test the plot function call at the end of the file from the Julia REPL.
 """
 Call simulate function below
 """
@@ -14,7 +14,7 @@ end
     
 scenariotest = NetworkParameters(  L=3, 
                                 gamma_shape = 3.0, 
-                                λ = 10, 
+                                λ = 1, 
                                 η = 4.0, 
                                 μ_vector = ones(3),
                                 P = [0 1.0 0;

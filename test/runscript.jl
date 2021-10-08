@@ -14,7 +14,7 @@ end
     
 scenariotest = NetworkParameters(  L=3, 
                                 gamma_shape = 3.0, 
-                                λ = 3, 
+                                λ = 10, 
                                 η = 4.0, 
                                 μ_vector = ones(3),
                                 P = [0 1.0 0;
@@ -25,6 +25,6 @@ scenariotest = NetworkParameters(  L=3,
                                 K = fill(5,3))
 
 # simulate(NetworkState(0, zeros(Int8, scenario1.L)), TimedEvent(ArrivalEvent(),0.0), log_times = [5.3,7.5])
-
-simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0), scenariotest ,max_time = 20.0, callback = record_trajectory)
+@time compile_time_macro = 1
+@time simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0), scenariotest, max_time = 100.0, callback = record_trajectory)
 plot(time_traj, queue_traj)

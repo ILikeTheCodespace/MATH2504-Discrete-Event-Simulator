@@ -4,7 +4,7 @@ rand_bit(p::Real = 0.5) = rand() ≤ p ? 1 : 0   #\le + [TAB]
 
 function queue_join_with_empty_check(time::Float64, current_station::Int, state::State, new_timed_events::Array{TimedEvent}, scenario::NetworkParameters)::Bool
     state.queues[current_station] += 1
-    state.queues[current_station] == 1 && push!(new_timed_events, TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.μ_vector[current_station])), current_station))
+    state.queues[current_station] == 1 && push!(new_timed_events, TimedEvent(EndOfServiceEvent(), time + rand(Gamma(scenario.gamma_shape, scenario.μ_vector[current_station])), current_station))
     return true
 end
 
@@ -46,7 +46,7 @@ function process_event(time::Float64, state::State, location_ID, ::ArrivalEvent,
     """
     FIXME: The arg. for the Gamma function calls are placeholders since I currently do not understand what theyre asking for an input
     """
-    push!(new_timed_events,TimedEvent(ArrivalEvent(),time + rand(Gamma(1/scenario.λ)),0))
+    push!(new_timed_events,TimedEvent(ArrivalEvent(),time + rand(Gamma(scenario.gamma_shape, scenario.λ)),0))
 
     # Using probability vector, find the first station that the new arrival heads to
     current_station = sample(scenario.p_e) 
@@ -63,7 +63,7 @@ function process_event(time::Float64, state::State, location_ID, ::ArrivalEvent,
     if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
         state.number_in_system -= 1
     else
-        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:]))))
+        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(scenario.gamma_shape, scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:]))))
     end
 
     return new_timed_events
@@ -80,11 +80,11 @@ function process_event(time::Float64, state::State, location_ID, ::EndOfServiceE
     if rand_bit(1-sum(scenario.P[current_station,:])) == 1
         state.number_in_system -= 1
     else
-        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.η)), sample(AnalyticWeights(scenario.P[current_station,:]))))
+        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(scenario.gamma_shape, scenario.η)), sample(AnalyticWeights(scenario.P[current_station,:]))))
     end
 
     @assert state.queues[location_ID] > -1
-    return state.queues[location_ID] > 0 ? [TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.μ_vector[current_station])), location_ID)] : TimedEvent[]
+    return state.queues[location_ID] > 0 ? [TimedEvent(EndOfServiceEvent(), time + rand(Gamma(scenario.gamma_shape, scenario.μ_vector[current_station])), location_ID)] : TimedEvent[]
 end
 
 # Process an Orbit and OverflowEvent event
@@ -99,7 +99,7 @@ function process_event(time::Float64, state::State, location_ID, ::OverflowEvent
     if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
         state.number_in_system -= 1
     else
-        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:]))))
+        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(scenario.gamma_shape, scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:]))))
     end
 
     return new_timed_events
@@ -110,4 +110,3 @@ function process_event(time::Float64, state::State, location_ID, es_event::EndSi
     println("Ending simulation at time $time.")
     return []
 end
-

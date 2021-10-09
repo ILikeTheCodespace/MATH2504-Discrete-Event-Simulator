@@ -1,10 +1,6 @@
 #Here are parameters for scenarios 1, 2, 3, 4, 5 for Project 2
 #For convenience they are stored in a struct, NetworkParameters
 
-# using Parameters #You need to install the Parameters.jl package: https://github.com/mauro3/Parameters.jl 
-# using LinearAlgebra 
-# using StatsBase
-
 #The @with_kw macro comes from the Parameters package
 @with_kw struct NetworkParameters
     L::Int

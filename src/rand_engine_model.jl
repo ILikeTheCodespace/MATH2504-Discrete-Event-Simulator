@@ -2,9 +2,6 @@
 ### BOILERPLATE FROM LECTURE NOTES ### 
 ######################################
 
-# using DataStructures
-# import Base: isless
-
 abstract type Event end
 abstract type State end
 
@@ -13,6 +10,7 @@ struct TimedEvent
     event::Event
     time::Float64
     location_ID::Int
+    arrival_time::Float64
 end
 
 # Comparison of two timed events - this will allow us to use them in a heap/priority-queue
@@ -26,13 +24,13 @@ total jobs within system.
 mutable struct NetworkState <: State
     number_in_system::Int # Total number of jobs within the network
     queues::Array{Int8} #Int8 type used here since the capacity of each station for the parameters provided maxes out at 10, could cause scalability issues
+    number_in_system_decreased::Bool
     NetworkState() = new(0)
-    NetworkState(x::Int, y::Array{Int8}) = new(x,y)
+    NetworkState(x::Int, y::Array{Int8}) = new(x,y, false)
 end
 
 struct ArrivalEvent <: Event end
 struct EndOfServiceEvent <: Event end
-struct OrbitEvent <: Event end # FIXME: MIGHT NOT NEED THIS
 struct OverflowEvent <: Event end 
 
 # Generic events that we can always use
@@ -67,9 +65,10 @@ function simulate(init_state::State, init_timed_event::TimedEvent
 
     # Put the standard events in the queue
     push!(priority_queue, init_timed_event)
-    push!(priority_queue, TimedEvent(EndSimEvent(), max_time, 0))
+    # FIXME: TESTING NAN FOR THE FINAL VALUE OF TIMED EVENT
+    push!(priority_queue, TimedEvent(EndSimEvent(), max_time, 0, NaN))
     for log_time in log_times
-        push!(priority_queue, TimedEvent(LogStateEvent(), log_time, 0))
+        push!(priority_queue, TimedEvent(LogStateEvent(), log_time, 0, NaN))
     end
 
     # initilize the state
@@ -77,7 +76,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent
     time = 0.0
 
     # Callback at simulation start
-    callback(time, state)
+    callback(time, state, TimedEvent[])
 
     # The main discrete event simulation loop - SIMPLE!
     while true
@@ -101,7 +100,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent
         end
 
         # Callback for each simulation event
-        callback(time, state)
+        callback(time, state, timed_event)
     end
 end;
 
@@ -120,9 +119,10 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
 
     # Put the standard events in the queue
     push!(priority_queue, init_timed_event)
-    push!(priority_queue, TimedEvent(EndSimEvent(), max_time, 0))
+    # FIXME: TESTING NAN FOR THE FINAL VALUE OF TIMED EVENT
+    push!(priority_queue, TimedEvent(EndSimEvent(), max_time, 0, NaN))
     for log_time in log_times
-        push!(priority_queue, TimedEvent(LogStateEvent(), log_time, 0))
+        push!(priority_queue, TimedEvent(LogStateEvent(), log_time, 0, NaN))
     end
 
     # Initialize the network state
@@ -133,7 +133,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
     # state.queues = zeros(Int8, scenario.L) This is probably a bad approach to take when taking a "generic" system so Im commenting it out for the time being
 
     # Callback at simulation start
-    callback(time, state)
+    callback(time, state, init_timed_event)
     
     # The main discrete event simulation loop 
     while true
@@ -144,7 +144,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
         time = timed_event.time
 
         # Act on the event
-        new_timed_events = process_event(time, state, timed_event.location_ID, timed_event.event, scenario)
+        new_timed_events = process_event(time, state, timed_event.location_ID, timed_event.event, scenario, timed_event.arrival_time)
 
         # If the event was an end of simulation then stop
         if timed_event.event isa EndSimEvent
@@ -157,7 +157,10 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
         end
         
         # Callback for each simulation event
-        callback(time, state)
+        callback(time, state, timed_event)
+
+        # Reset state changed variable
+        state.number_in_system_decreased = false
     end
 end
 

@@ -30,7 +30,7 @@ function plot_data_callbacks(time::Float64, state::NetworkState, event::TimedEve
 end
 
 @time compile_time_macro = 1
-@time simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), scenariotest, max_time = 1000000.0, callback = plot_data_callbacks)
+@time simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), scenariotest, max_time = 100000000.0, callback = plot_data_callbacks)
 
 """
 Call simulate function below for lambdas from 1 to 5

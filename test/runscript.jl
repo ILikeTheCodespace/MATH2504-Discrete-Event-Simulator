@@ -1,11 +1,11 @@
-include("../src/dependencies.jl")
-# include("src/dependencies.jl") # This line is just here to test the plot function call at the end of the file from the Julia REPL.
+# include("../src/dependencies.jl")
+include("src/dependencies.jl") # This line is just here to test the plot function call at the end of the file from the Julia REPL.
 
 lambda_range = 1:5
 
 # Simulation recorded data
-sojurn_times, orbiting_jobs_proportion = Float64[], Float64[]
-system_job_totals = Int64[]
+sojurn_times = Float64[]
+system_job_totals, total_queued_jobs = Int64[], Int64[]
 
 # Processed simulation data
 mean_system_job_totals = zeros(Float64, length(lambda_range))
@@ -24,13 +24,13 @@ scenariotest = NetworkParameters(  L=3,
 
 function plot_data_callbacks(time::Float64, state::NetworkState, event::TimedEvent)
     state.number_in_system_decreased && push!(sojurn_times, time - event.arrival_time)
-    push!(orbiting_jobs_proportion, sum(state.queues)/state.number_in_system)
+    push!(total_queued_jobs, sum(state.queues))
     push!(system_job_totals, state.number_in_system)
     return nothing
 end
 
 @time compile_time_macro = 1
-# @time simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), scenariotest, max_time = 10000.0, callback = plot_data_callbacks)
+@time simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), scenariotest, max_time = 1000000.0, callback = plot_data_callbacks)
 
 """
 Call simulate function below for lambdas from 1 to 5
@@ -38,7 +38,7 @@ Call simulate function below for lambdas from 1 to 5
 #TODO: This whole loop is pretty gross but was fast to make and gets the job done, consider refactoring for cleanliness
 
 for i in 1:length(lambda_range)
-    global sojurn_times, orbiting_jobs_proportion, system_job_totals
+    global sojurn_times, total_queued_jobs, system_job_totals
 
     simulate(NetworkState(0, zeros(Int8, scenariotest.L)), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), scenariotest, max_time = 10000.0, callback = plot_data_callbacks)
 
@@ -54,6 +54,6 @@ for i in 1:length(lambda_range)
     # for l in 
     # end
 
-    sojurn_times, orbiting_jobs_proportion = Float64[], Float64[]
-    system_job_totals = Int64[]
+    sojurn_times = Float64[]
+    system_job_totals, total_queued_jobs = Int64[], Int64[]
 end

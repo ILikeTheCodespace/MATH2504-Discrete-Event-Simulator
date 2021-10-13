@@ -27,7 +27,7 @@ mutable struct NetworkState <: State
     number_in_system_decreased::Bool
     orbiting_jobs::Int
     NetworkState() = new(0)
-    NetworkState(x::Int, y::Array{Int8}) = new(x,y, false, 0)
+    NetworkState(x::Int, y::Array{Int8}, z::Int) = new(x,y, false, z)
 end
 
 struct ArrivalEvent <: Event end

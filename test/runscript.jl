@@ -22,8 +22,8 @@ end
 """
 Call simulate function below for lambdas in lambda_range
 """
-#TODO: This whole loop is pretty gross but was fast to make and gets the job done, consider refactoring for cleanliness
 
+#TODO: This whole loop is pretty gross but was fast to make and gets the job done, consider refactoring for cleanliness
 for i in 1:length(lambda_range)
     current_scenario = NetworkParameters(  L=3, 
                                 gamma_shape = 3.0, 
@@ -41,7 +41,9 @@ for i in 1:length(lambda_range)
 
     Random.seed!(1)
 
-    simulate(NetworkState(0, zeros(Int8, current_scenario.L)), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 1000.0, callback = plot_data_callbacks)
+    println("Starting simulation for λ = $i")
+
+    @time simulate(NetworkState(0, zeros(Int8, current_scenario.L), 0), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 100000000.0, callback = plot_data_callbacks)
 
     println("Simulation for lambda = $i complete. Processing data for lambda = $i now.")
 
@@ -57,7 +59,7 @@ for i in 1:length(lambda_range)
     # Logic to generate the data needed for Plot 3.
     push!(processed_sojurn_times, sojurn_times)
 
-    println("Data for lambda = $i has now been processed.")
+    println("Data for lambda = $i has now been processed.\n")
 
     sojurn_times = Float64[]
     system_job_totals, total_orbiting_jobs = Int64[], Int64[]

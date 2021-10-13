@@ -110,6 +110,5 @@ end
 
 # Process an EndSimEvent event
 function process_event(time::Float64, state::State, location_ID, es_event::EndSimEvent, scenario::NetworkParameters, arrival_time::Float64)
-    println("Ending simulation at time $time.")
     return []
 end

@@ -1,4 +1,4 @@
-using Distributions, StatsBase, Parameters, LinearAlgebra, DataStructures, Plots
+using Distributions, StatsBase, Parameters, LinearAlgebra, DataStructures, PyPlot, Random
 
 import Base: isless
 

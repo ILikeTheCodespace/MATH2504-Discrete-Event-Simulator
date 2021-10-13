@@ -22,3 +22,5 @@ docs/site/
 # committed for packages, but should be committed for applications that require a static
 # environment.
 Manifest.toml
+histogram_scenario_1.png
+mean_items_scenario_1.png

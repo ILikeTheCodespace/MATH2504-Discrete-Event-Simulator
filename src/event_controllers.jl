@@ -61,6 +61,7 @@ function process_event(time::Float64, state::State, location_ID, ::ArrivalEvent,
         state.number_in_system -= 1
     else
         push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(scenario.gamma_shape, 1/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:])), arrival_time))
+        state.orbiting_jobs += 1
     end
 
     return new_timed_events
@@ -79,6 +80,7 @@ function process_event(time::Float64, state::State, location_ID, ::EndOfServiceE
         state.number_in_system -= 1
     else
         push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(scenario.gamma_shape, 1/scenario.η)), sample(AnalyticWeights(scenario.P[current_station,:])), arrival_time))
+        state.orbiting_jobs += 1
     end
 
     @assert state.queues[location_ID] > -1
@@ -92,6 +94,7 @@ function process_event(time::Float64, state::State, location_ID, ::OverflowEvent
     current_station = location_ID
     # Job enters initial station, if it is not full, the job either queues or is being actively serviced. TODO: Consider cleaning up later since this code is pretty gross.
     # TODO: Check if the guard clause here is needed, or if theres a smarter way to go about this
+    state.orbiting_jobs -= 1
     state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
 
     if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
@@ -99,6 +102,7 @@ function process_event(time::Float64, state::State, location_ID, ::OverflowEvent
         state.number_in_system -= 1
     else
         push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(scenario.gamma_shape, 1/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:])), arrival_time))
+        state.orbiting_jobs += 1
     end
 
     return new_timed_events

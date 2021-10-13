@@ -25,8 +25,9 @@ mutable struct NetworkState <: State
     number_in_system::Int # Total number of jobs within the network
     queues::Array{Int8} #Int8 type used here since the capacity of each station for the parameters provided maxes out at 10, could cause scalability issues
     number_in_system_decreased::Bool
+    orbiting_jobs::Int
     NetworkState() = new(0)
-    NetworkState(x::Int, y::Array{Int8}) = new(x,y, false)
+    NetworkState(x::Int, y::Array{Int8}) = new(x,y, false, 0)
 end
 
 struct ArrivalEvent <: Event end

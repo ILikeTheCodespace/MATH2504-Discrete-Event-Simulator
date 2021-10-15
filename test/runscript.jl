@@ -43,7 +43,7 @@ for i in 1:length(lambda_range)
 
     println("Starting simulation for λ = $i")
 
-    @time simulate(NetworkState(0, zeros(Int8, current_scenario.L), 0), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 100000000.0, callback = plot_data_callbacks)
+    @time simulate(NetworkState(0, zeros(Int8, current_scenario.L), 0), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 1000.0, callback = plot_data_callbacks)
 
     println("Simulation for lambda = $i complete. Processing data for lambda = $i now.")
 

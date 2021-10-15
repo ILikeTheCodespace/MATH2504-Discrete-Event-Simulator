@@ -1,7 +1,7 @@
 include("../src/dependencies.jl")
 # include("src/dependencies.jl") # This line is just here to test the plot function call at the end of the file from the Julia REPL.
 
-lambda_range = 1:5
+lambda_range = [i for i in 0.6:0.2:1.2]
 
 # Simulation recorded data
 sojurn_times = Float64[]
@@ -41,11 +41,11 @@ for i in 1:length(lambda_range)
 
     Random.seed!(1)
 
-    println("Starting simulation for λ = $i")
+    println("Starting simulation for λ = ", lambda_range[i])
 
-    @time simulate(NetworkState(0, zeros(Int8, current_scenario.L), 0), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 1000.0, callback = plot_data_callbacks)
+    @time simulate(NetworkState(0, zeros(Int8, current_scenario.L), 0), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 100.0, callback = plot_data_callbacks)
 
-    println("Simulation for lambda = $i complete. Processing data for lambda = $i now.")
+    println("Simulation for lambda = ", lambda_range[i], " complete. Processing data for lambda = ", lambda_range[i], " now.")
 
     # Logic to generate the data needed for Plot 1.
     system_job_totals_length = length(system_job_totals)
@@ -59,10 +59,11 @@ for i in 1:length(lambda_range)
     # Logic to generate the data needed for Plot 3.
     push!(processed_sojurn_times, sojurn_times)
 
-    println("Data for lambda = $i has now been processed.\n")
+    println("Data for lambda = ", lambda_range[i], " has now been processed.\n")
 
     sojurn_times = Float64[]
     system_job_totals, total_orbiting_jobs = Int64[], Int64[]
 end
 
-scenario_plots(1, lambda_range)
+# scenario_plots(processed_sojurn_times, mean_system_job_totals, proportion_orbiting_jobs, 1, lambda_range)
+# DO SCENARIO 3 ONCE THIS IS DONE

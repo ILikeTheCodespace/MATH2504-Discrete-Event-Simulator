@@ -4,7 +4,7 @@ Writes the 3 plots needed for the project.
 function scenario_plots(processed_sojurn_times, mean_system_job_totals, proportion_orbiting_jobs, scenario_number::Int64, lambda_range::Array{Float64})
     println("Plotting data...")
 
-    PyPlot.hist(processed_sojurn_times, bins = [i for i in 0:0.5:maximum([maximum(i) for i in processed_sojurn_times])+0.5])
+    PyPlot.hist(processed_sojurn_times)
     PyPlot.yscale("log")
     PyPlot.legend(["λ = $i" for i in lambda_range])
     PyPlot.title("Empirical Distribution of Sojurn Times For Scenario $scenario_number\n")

@@ -90,7 +90,6 @@ end
 # Process an Orbit and OverflowEvent event
 function process_event(time::Float64, state::State, location_ID, ::OverflowEvent, scenario::NetworkParameters, arrival_time::Float64)
     new_timed_events = TimedEvent[]
-
     current_station = location_ID
     # Job enters initial station, if it is not full, the job either queues or is being actively serviced. TODO: Consider cleaning up later since this code is pretty gross.
     # TODO: Check if the guard clause here is needed, or if theres a smarter way to go about this

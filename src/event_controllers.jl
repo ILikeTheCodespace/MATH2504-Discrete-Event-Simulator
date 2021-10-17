@@ -78,6 +78,7 @@ function process_event(time::Float64, state::State, location_ID, ::EndOfServiceE
     if rand_bit(1-sum(scenario.P[current_station,:])) == 1
         state.number_in_system_decreased = true
         state.number_in_system -= 1
+        @assert state.number_in_system >= 0
     else
         push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.η)), sample(AnalyticWeights(scenario.P[current_station,:])), arrival_time))
         state.orbiting_jobs += 1
@@ -99,6 +100,7 @@ function process_event(time::Float64, state::State, location_ID, ::OverflowEvent
     if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
         state.number_in_system_decreased = true
         state.number_in_system -= 1
+        @assert state.number_in_system >= 0
     else
         push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:])), arrival_time))
         state.orbiting_jobs += 1

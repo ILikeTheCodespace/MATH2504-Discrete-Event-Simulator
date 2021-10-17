@@ -50,19 +50,11 @@ function process_event(time::Float64, state::State, location_ID, ::ArrivalEvent,
     # Using probability vector, find the first station that the new arrival heads to
     current_station = sample(scenario.p_e) 
     
-    # Job enters initial station, if it is not full, the job either queues or is being actively serviced. TODO: Consider cleaning up later since this code is pretty gross.
+    # Job enters initial station, if it is not full, the job either queues or is being actively serviced. 
     state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
 
-    # TODO: FIXME: This if block is repeated multiple times throughout this file, this is poor practice and should be replaced with a function call ASAP. 
-
     # If the job doesnt leave the system (Determined by the overflow matrix Q), then a new OverflowEvent is created
-    if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
-        state.number_in_system_decreased = true
-        state.number_in_system -= 1
-    else
-        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:])), arrival_time))
-        state.orbiting_jobs += 1
-    end
+    overflow_state_control(time, state, scenario.Q, scenario, arrival_time, current_station, new_timed_events)
 
     return new_timed_events
 end
@@ -75,14 +67,7 @@ function process_event(time::Float64, state::State, location_ID, ::EndOfServiceE
 
     state.queues[current_station] -= 1
 
-    if rand_bit(1-sum(scenario.P[current_station,:])) == 1
-        state.number_in_system_decreased = true
-        state.number_in_system -= 1
-        @assert state.number_in_system >= 0
-    else
-        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.η)), sample(AnalyticWeights(scenario.P[current_station,:])), arrival_time))
-        state.orbiting_jobs += 1
-    end
+    overflow_state_control(time, state, scenario.P, scenario, arrival_time, current_station, new_timed_events)
 
     @assert state.queues[location_ID] > -1
     return state.queues[location_ID] > 0 ? [TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.μ_vector[current_station])), location_ID, arrival_time)] : TimedEvent[]
@@ -92,19 +77,12 @@ end
 function process_event(time::Float64, state::State, location_ID, ::OverflowEvent, scenario::NetworkParameters, arrival_time::Float64)
     new_timed_events = TimedEvent[]
     current_station = location_ID
-    # Job enters initial station, if it is not full, the job either queues or is being actively serviced. TODO: Consider cleaning up later since this code is pretty gross.
-    # TODO: Check if the guard clause here is needed, or if theres a smarter way to go about this
+
+    # Job enters initial station, if it is not full, the job either queues or is being actively serviced.
     state.orbiting_jobs -= 1
     state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
 
-    if rand_bit(1-sum(scenario.Q[current_station,:])) == 1
-        state.number_in_system_decreased = true
-        state.number_in_system -= 1
-        @assert state.number_in_system >= 0
-    else
-        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.η)), sample(AnalyticWeights(scenario.Q[current_station,:])), arrival_time))
-        state.orbiting_jobs += 1
-    end
+    overflow_state_control(time, state, scenario.Q, scenario, arrival_time, current_station, new_timed_events)
 
     return new_timed_events
 end
@@ -113,3 +91,15 @@ end
 function process_event(time::Float64, state::State, location_ID, es_event::EndSimEvent, scenario::NetworkParameters, arrival_time::Float64)
     return []
 end 
+
+function overflow_state_control(time::Float64, state::State, prob_matrix::Matrix{Float64}, scenario::NetworkParameters, arrival_time::Float64, current_station, new_timed_events::Array{TimedEvent})::Nothing
+    if rand_bit(1-sum(prob_matrix[current_station,:])) == 1
+        state.number_in_system_decreased = true
+        state.number_in_system -= 1
+        @assert state.number_in_system >= 0
+    else
+        push!(new_timed_events, TimedEvent(OverflowEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.η)), sample(AnalyticWeights(prob_matrix[current_station,:])), arrival_time))
+        state.orbiting_jobs += 1
+    end
+    return nothing
+end

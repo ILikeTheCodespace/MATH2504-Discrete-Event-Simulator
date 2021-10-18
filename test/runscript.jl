@@ -25,25 +25,31 @@ Call simulate function below for lambdas in lambda_range
 
 #TODO: This whole loop is pretty gross but was fast to make and gets the job done, consider refactoring for cleanliness
 for i in 1:length(lambda_range)
-    current_scenario = NetworkParameters(  L=3, 
+    current_scenario = NetworkParameters(  L=5, 
                                 gamma_shape = 3.0, 
                                 λ = i, 
                                 η = 4.0, 
-                                μ_vector = ones(3),
-                                P = [0 1.0 0;
-                                    0 0 1.0;
-                                    0 0 0],
-                                Q = zeros(3,3),
-                                p_e = AnalyticWeights([1.0, 0, 0]),
-                                K = fill(5,3))
+                                μ_vector = collect(5:-1:1),
+                                P = [0   0.5 0.5 0   0;
+                                     0   0   0   1   0;
+                                     0   0   0   0   1;
+                                     0.5 0   0   0   0;
+                                     0.2 0.2 0.2 0.2 0.2],
+                                Q = [0 0 0 0 0;
+                                     1 0 0 0 0;
+                                     1 0 0 0 0;
+                                     1 0 0 0 0;
+                                     1 0 0 0 0],                             
+                                p_e = AnalyticWeights([0.2, 0.2, 0, 0, 0.6]),
+                                K = [-1, -1, 10, 10, 10])
 
     global sojurn_times, total_orbiting_jobs, system_job_totals
 
     Random.seed!(1)
 
     println("Starting simulation for λ = ", lambda_range[i])
-
-    @time simulate(NetworkState(0, zeros(Int8, current_scenario.L), 0), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 1000.0, callback = plot_data_callbacks)
+    
+    @time simulate(NetworkState(0, zeros(Int8, current_scenario.L), 0), TimedEvent(ArrivalEvent(),0.0, 0, 0.0), current_scenario, max_time = 100000000.0, callback = plot_data_callbacks)
 
     println("Simulation for lambda = ", lambda_range[i], " complete. Processing data for lambda = ", lambda_range[i], " now.")
 
@@ -65,4 +71,4 @@ for i in 1:length(lambda_range)
     system_job_totals, total_orbiting_jobs = Int64[], Int64[]
 end
 
-scenario_plots(processed_sojurn_times, mean_system_job_totals, proportion_orbiting_jobs, 100, lambda_range)
+scenario_plots(processed_sojurn_times, mean_system_job_totals, proportion_orbiting_jobs, 4, lambda_range)

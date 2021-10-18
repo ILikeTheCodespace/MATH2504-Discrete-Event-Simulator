@@ -51,8 +51,12 @@ function process_event(time::Float64, state::State, location_ID, ::ArrivalEvent,
     current_station = sample(scenario.p_e) 
     
     # Job enters initial station, if it is not full, the job either queues or is being actively serviced. 
-    state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
-
+    if scenario.K[current_station] != -1
+        state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
+    else
+        queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
+    end
+    
     # If the job doesnt leave the system (Determined by the overflow matrix Q), then a new OverflowEvent is created
     overflow_state_control(time, state, scenario.Q, scenario, arrival_time, current_station, new_timed_events)
 
@@ -70,7 +74,9 @@ function process_event(time::Float64, state::State, location_ID, ::EndOfServiceE
     overflow_state_control(time, state, scenario.P, scenario, arrival_time, current_station, new_timed_events)
 
     @assert state.queues[location_ID] > -1
-    return state.queues[location_ID] > 0 ? [TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.μ_vector[current_station])), location_ID, arrival_time)] : TimedEvent[]
+    state.queues[location_ID] > 0 && push!(new_timed_events, TimedEvent(EndOfServiceEvent(), time + rand(Gamma(1/scenario.gamma_shape, scenario.gamma_shape/scenario.μ_vector[current_station])), location_ID, arrival_time))
+
+    return new_timed_events
 end
 
 # Process an Orbit and OverflowEvent event
@@ -80,7 +86,12 @@ function process_event(time::Float64, state::State, location_ID, ::OverflowEvent
 
     # Job enters initial station, if it is not full, the job either queues or is being actively serviced.
     state.orbiting_jobs -= 1
-    state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
+
+    if scenario.K[current_station] != -1
+        state.queues[current_station] < scenario.K[current_station] && queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
+    else
+        queue_join_with_empty_check(time, current_station, state, new_timed_events, scenario, arrival_time) && return new_timed_events
+    end
 
     overflow_state_control(time, state, scenario.Q, scenario, arrival_time, current_station, new_timed_events)
 

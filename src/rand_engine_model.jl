@@ -23,7 +23,7 @@ total jobs within system.
 
 mutable struct NetworkState <: State
     number_in_system::Int # Total number of jobs within the network
-    queues::Array{Int8} #Int8 type used here since the capacity of each station for the parameters provided maxes out at 10, could cause scalability issues
+    queues::Array{Int64} #Int64 used because scenario 4 has an infinite queue
     number_in_system_decreased::Bool
     orbiting_jobs::Int
     NetworkState() = new(0)
@@ -163,8 +163,7 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
         # Reset state changed variable
         state.number_in_system_decreased = false
     end
-    println(state.number_in_system)
     println(state.orbiting_jobs)
-    println(state.queues)
+    println(state.number_in_system)
 end
 

@@ -2,7 +2,7 @@
 #For convenience they are stored in a struct, NetworkParameters
 
 #The @with_kw macro comes from the Parameters package
-@with_kw struct NetworkParameters
+@with_kw mutable struct NetworkParameters
     L::Int
     gamma_shape::Float64 #This is constant for all scenarios at 3.0
     λ::Float64 #This is undefined for the scenarios since it is varied

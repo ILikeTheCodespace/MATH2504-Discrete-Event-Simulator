@@ -79,7 +79,7 @@ function process_event(time::Float64, state::State, location_ID, ::EndOfServiceE
     return new_timed_events
 end
 
-# Process an Orbit and OverflowEvent event
+# Process an Orbit and OverflowEvent event, here, the job has finished orbiting and must either now leave the system, join the queue, or join another queue.
 function process_event(time::Float64, state::State, location_ID, ::OverflowEvent, scenario::NetworkParameters, arrival_time::Float64)
     new_timed_events = TimedEvent[]
     current_station = location_ID

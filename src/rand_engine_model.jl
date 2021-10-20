@@ -163,7 +163,8 @@ function simulate(init_state::State, init_timed_event::TimedEvent, scenario::Net
         # Reset state changed variable
         state.number_in_system_decreased = false
     end
-    println(state.orbiting_jobs)
+    println(state.queues)
     println(state.number_in_system)
+    return state
 end
 

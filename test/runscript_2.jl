@@ -109,6 +109,8 @@ test_params = NetworkParameters(  L=5,
                                 p_e = AnalyticWeights([0.2, 0.2, 0, 0, 0.6]),
                                 K = [-1, -1, 10, 10, 10])
 
-lambdas = [i for i in 0.2:0.2:0.8]
+lambdas = [i for i in 0.2:0.2:0.8] 
 
-run_script(test_params, max_time = 100000000.0, lambda_range = lambdas, mode=2, plot_num=1044)
+run_script(test_params, max_time = 100000000.0, lambda_range = lambdas, mode=1, plot_num=1044)
+
+# DO SCENARIO 4 FOR MODE 1

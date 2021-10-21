@@ -73,18 +73,42 @@ function run_script(params::NetworkParameters; max_time::Float64, lambda_range::
     scenario_plots(processed_sojurn_times, mean_system_job_totals, proportion_orbiting_jobs, plot_num, lambda_range, mode)
 end
 
-test_params = NetworkParameters(  L=3, 
+#################################
+### NetworkParameters Outline ###
+#################################
+
+"""
+@with_kw mutable struct NetworkParameters
+    L::Int #
+    gamma_shape::Float64 # 
+    λ::Float64 #This is undefined for the scenarios since it is varied
+    η::Float64 #
+    μ_vector::Vector{Float64} #service rates
+    P::Matrix{Float64} #routing matrix
+    Q::Matrix{Float64} #overflow matrix
+    p_e::AbstractWeights #external arrival distribution
+    K::Vector{Int} #-1 means infinity 
+end
+"""
+
+test_params = NetworkParameters(  L=5, 
                                 gamma_shape = 3.0, 
                                 λ = NaN, 
                                 η = 4.0, 
-                                μ_vector = ones(3),
-                                P = [0 1.0 0;
-                                    0 0 1.0;
-                                    0 0 0],
-                                Q = zeros(3,3),
-                                p_e = AnalyticWeights([1.0, 0, 0]),
-                                K = fill(5,3))
+                                μ_vector = collect(5:-1:1),
+                                P = [0   0.5 0.5 0   0;
+                                     0   0   0   1   0;
+                                     0   0   0   0   1;
+                                     0.5 0   0   0   0;
+                                     0.2 0.2 0.2 0.2 0.2],
+                                Q = [0 0 0 0 0;
+                                     1 0 0 0 0;
+                                     1 0 0 0 0;
+                                     1 0 0 0 0;
+                                     1 0 0 0 0],                             
+                                p_e = AnalyticWeights([0.2, 0.2, 0, 0, 0.6]),
+                                K = [-1, -1, 10, 10, 10])
 
-lambdas = [i for i in 0.2:0.2:1.2]
+lambdas = [i for i in 0.2:0.2:0.8]
 
-run_script(test_params, max_time = 100.0, lambda_range = lambdas, mode=1, plot_num=117)
+run_script(test_params, max_time = 100000000.0, lambda_range = lambdas, mode=2, plot_num=1044)

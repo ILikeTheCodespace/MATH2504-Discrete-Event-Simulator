@@ -23,13 +23,22 @@ function scenario_plots(processed_sojurn_times, mean_system_job_totals, proporti
         PyPlot.close()
 
     elseif mode == 2
-        PyPlot.hist(processed_sojurn_times)
-        PyPlot.yscale("log")
+        for i in processed_sojurn_times
+            PyPlot.plot(sort(i), (1:length(i))./length(i))
+        end
         PyPlot.legend(["λ = $i" for i in lambda_range])
         PyPlot.title("Empirical Distribution of Sojurn Times For Scenario $scenario_number\n")
         PyPlot.xlabel("Recorded Sojurn Times (Seconds)")
-        PyPlot.ylabel("Frequency")
+        PyPlot.ylabel("Fraction of Data")
         PyPlot.savefig("histogram_scenario_$scenario_number.png")
         PyPlot.close()
+        # PyPlot.hist(processed_sojurn_times)
+        # PyPlot.yscale("log")
+        # PyPlot.legend(["λ = $i" for i in lambda_range])
+        # PyPlot.title("Empirical Distribution of Sojurn Times For Scenario $scenario_number\n")
+        # PyPlot.xlabel("Recorded Sojurn Times (Seconds)")
+        # PyPlot.ylabel("Frequency")
+        # PyPlot.savefig("histogram_scenario_$scenario_number.png")
+        # PyPlot.close()
     end
 end

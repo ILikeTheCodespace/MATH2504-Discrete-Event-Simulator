@@ -79,10 +79,10 @@ end
 
 """
 @with_kw mutable struct NetworkParameters
-    L::Int #
-    gamma_shape::Float64 # 
+    L::Int #amount of stations
+    gamma_shape::Float64 #external rate of arrivals
     λ::Float64 #This is undefined for the scenarios since it is varied
-    η::Float64 #
+    η::Float64 #overflow movement rate
     μ_vector::Vector{Float64} #service rates
     P::Matrix{Float64} #routing matrix
     Q::Matrix{Float64} #overflow matrix
@@ -91,26 +91,26 @@ end
 end
 """
 
-test_params = NetworkParameters(  L=5, 
+###############################
+### HOW TO USE THIS PROGRAM ###
+###############################
+
+"""
+Please follow the instructions to README.md which explains how to use this program. The following variables test_params and lambdas along with the subsequent call to run_script are all the inputs needed to run this program. Once the inputs are what you want to them to be, run this script without debugging in VSCode with Ctrl+F5 and wait for the script to finish processing the request. Once finished, the script will output PNG files related to the mode that you have selected.
+"""
+
+test_params = NetworkParameters(  L=3, 
                                 gamma_shape = 3.0, 
                                 λ = NaN, 
                                 η = 4.0, 
-                                μ_vector = collect(5:-1:1),
-                                P = [0   0.5 0.5 0   0;
-                                     0   0   0   1   0;
-                                     0   0   0   0   1;
-                                     0.5 0   0   0   0;
-                                     0.2 0.2 0.2 0.2 0.2],
-                                Q = [0 0 0 0 0;
-                                     1 0 0 0 0;
-                                     1 0 0 0 0;
-                                     1 0 0 0 0;
-                                     1 0 0 0 0],                             
-                                p_e = AnalyticWeights([0.2, 0.2, 0, 0, 0.6]),
-                                K = [-1, -1, 10, 10, 10])
+                                μ_vector = ones(3),
+                                P = [0 1.0 0;
+                                    0 0 1.0;
+                                    0.5 0 0],
+                                Q = zeros(3,3),
+                                p_e = AnalyticWeights([1.0, 0, 0]),
+                                K = fill(5,3))
 
 lambdas = [i for i in 0.2:0.2:0.8] 
 
-run_script(test_params, max_time = 100000000.0, lambda_range = lambdas, mode=1, plot_num=1044)
-
-# DO SCENARIO 4 FOR MODE 1
+run_script(test_params, max_time = 10000.0, lambda_range = lambdas, mode=1, plot_num=102)

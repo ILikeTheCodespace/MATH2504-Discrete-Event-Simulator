@@ -8,7 +8,7 @@ Assignment Title: Discrete Event Simulation
 
 How to run:
 
-Navigate to the file runscript.jl in the test folder. Then at the bottom of that file will be two variables named test_params and lambdas and a call to the function named run_script. To use this program, simply change test_params to any NetworkParameter object that you would like to test along with changing lambdas to be equal to an array of floats that you would like to test your selected test_params over. Next the run_script function takes in 5 arguments. The first one is an unnamed argument where you should pass the NetworkParameter object that you assigned to the variable test_params. The last four arguments of run_script are named arguments and are explained below.
+Navigate to the file runscript.jl in the test folder. Then at the bottom of that file will be two variables named test_params and lambdas and a call to the function named run_script. To use this program, simply change test_params to any NetworkParameter object that you would like to test along with changing lambdas to be equal to an array of floats that you would like to test your selected test_params over. Next the run_script function takes in 5 arguments. The first one is an unnamed argument where you should pass the NetworkParameter object that you assigned to the variable test_params. The last four arguments of run_script are named arguments and are explained below. When ready to run the script, run this script without debugging in VSCode with Ctrl+F5 and wait for the script to finish processing the request. Once finished, the script will output PNG files related to the mode that you have selected.
 
 **max_time**: The maximum amount of time that you would like the simulation to run over. (Inputted as a float64).
 

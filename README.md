@@ -1,4 +1,4 @@
-# Stephanie-Walker-and-William-Idoine-2504-2021-PROJECT2
+# MATH2504-Discrete-Event-Simulator
 
 Student Names: Stephanie Walker, William Idoine
 
